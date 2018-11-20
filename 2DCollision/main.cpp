@@ -57,10 +57,10 @@ int main()
 
 	c2Capsule tinyCapsule;
 	tinyCapsule.a = { 300, 100 };
-	tinyCapsule.b = { 500, 100 };
+	tinyCapsule.b = { 400, 100 };
 	tinyCapsule.r = 30;
 
-	Capsule testCapsule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, tinyCapsule.b.x - tinyCapsule.a.x, tinyCapsule.r, sf::Color::Red);
+	Capsule testCapsule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, sf::Vector2f{ tinyCapsule.b.x,tinyCapsule.b.y }, tinyCapsule.r, sf::Color::Red);
 
 
 	c2Circle testCircle;
@@ -71,6 +71,21 @@ int main()
 	maCircle.setFillColor(sf::Color::Red);
 	maCircle.setOrigin(testCircle.r, testCircle.r);
 
+
+	c2Poly myPol;
+	
+	myPol.count = 3;
+	myPol.verts[0] = { 200,220 };
+	myPol.verts[1] = { 200,240 };
+	myPol.verts[2] = { 240,240 };
+
+	sf::ConvexShape tri;
+	tri.setPointCount(myPol.count);
+	tri.setPoint(0, sf::Vector2f{ myPol.verts[0].x, myPol.verts[0].y });
+	tri.setPoint(0, sf::Vector2f{ myPol.verts[1].x, myPol.verts[1].y });
+	tri.setPoint(0, sf::Vector2f{ myPol.verts[2].x, myPol.verts[2].y });
+	tri.setFillColor(sf::Color::Green);
+	tri.setOrigin(20, 20);
 
 	//Setup NPC AABB
 	c2AABB aabb_npc;
@@ -104,7 +119,7 @@ int main()
 		testCircle.p.y += direction.y;
 
 		maCircle.setPosition(testCircle.p.x, testCircle.p.y);
-
+		
 		// Capsule
 		tinyCapsule.a.x += direction.x;
 		tinyCapsule.a.y += direction.y;
@@ -113,7 +128,7 @@ int main()
 
 		testCapsule.setPosition(sf::Vector2f{ tinyCapsule.a.x, tinyCapsule.a.y });
 
-
+		
 		// Move Sprite Follow Mouse
 		player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
 		
@@ -240,7 +255,7 @@ int main()
 		testCapsule.render(window);
 		// Draw the NPC's Current Animated Sprite
 		window.draw(npc.getAnimatedSprite());
-
+		window.draw(tri);
 		// Update the window
 		window.display();
 	}

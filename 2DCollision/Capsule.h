@@ -6,11 +6,12 @@ class Capsule
 {
 public:
 	Capsule();
-	Capsule(sf::Vector2f t_startCirclePos, float t_endCirclePos, float t_radius, sf::Color t_colour);
+	Capsule(sf::Vector2f t_startCirclePos, sf::Vector2f t_endCirclePos, float t_radius, sf::Color t_colour);
 	~Capsule();
 	void update();
 	void render(sf::RenderWindow & t_wind);
 	void setPosition(sf::Vector2f t_pos);
+	void adjustBridge();
 	sf::Vector2f getPosition();
 
 private:
