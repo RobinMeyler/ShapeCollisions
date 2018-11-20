@@ -8,6 +8,7 @@
 #include <NPC.h>
 #include <Input.h>
 #include <Debug.h>
+#include "Capsule.h"
 
 using namespace std;
 
@@ -41,18 +42,35 @@ int main()
 
 	// Setup Players Default Animated Sprite
 	AnimatedSprite player_animated_sprite(player_texture);
-	player_animated_sprite.addFrame(sf::IntRect(3, 3, 84, 84));
-	player_animated_sprite.addFrame(sf::IntRect(88, 3, 84, 84));
-	player_animated_sprite.addFrame(sf::IntRect(173, 3, 84, 84));
-	player_animated_sprite.addFrame(sf::IntRect(258, 3, 84, 84));
-	player_animated_sprite.addFrame(sf::IntRect(343, 3, 84, 84));
-	player_animated_sprite.addFrame(sf::IntRect(428, 3, 84, 84));
+	player_animated_sprite.addFrame(sf::IntRect(3, 3, 20, 20));
+	player_animated_sprite.addFrame(sf::IntRect(88, 3, 20, 20));
+	player_animated_sprite.addFrame(sf::IntRect(173, 3, 20, 20));
+	player_animated_sprite.addFrame(sf::IntRect(258, 3, 20, 20));
+	player_animated_sprite.addFrame(sf::IntRect(343, 3, 20, 20));
+	player_animated_sprite.addFrame(sf::IntRect(428, 3, 20, 20));
 
 	// Setup the NPC
 	GameObject &npc = NPC(npc_animated_sprite);
 
 	// Setup the Player
 	GameObject &player = Player(player_animated_sprite);
+
+	c2Capsule tinyCapsule;
+	tinyCapsule.a = { 300, 100 };
+	tinyCapsule.b = { 500, 100 };
+	tinyCapsule.r = 30;
+
+	Capsule testCapsule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, tinyCapsule.b.x - tinyCapsule.a.x, tinyCapsule.r, sf::Color::Red);
+
+
+	c2Circle testCircle;
+	testCircle.p = {200, 200};
+	testCircle.r = 50;
+	sf::CircleShape maCircle(testCircle.r);
+	maCircle.setPosition(testCircle.p.x, testCircle.p.y);
+	maCircle.setFillColor(sf::Color::Red);
+	maCircle.setOrigin(testCircle.r, testCircle.r);
+
 
 	//Setup NPC AABB
 	c2AABB aabb_npc;
@@ -76,11 +94,26 @@ int main()
 	int result = 0;
 
 	// Direction of movement of NPC
-	sf::Vector2f direction(0.1f, 0.2f);
+	sf::Vector2f direction(0.01f, 0.02f);
 	
 	// Start the game loop
 	while (window.isOpen())
 	{
+		// Circle
+		testCircle.p.x += direction.x;
+		testCircle.p.y += direction.y;
+
+		maCircle.setPosition(testCircle.p.x, testCircle.p.y);
+
+		// Capsule
+		tinyCapsule.a.x += direction.x;
+		tinyCapsule.a.y += direction.y;
+		tinyCapsule.b.x += direction.x;
+		tinyCapsule.b.y += direction.y;
+
+		testCapsule.setPosition(sf::Vector2f{ tinyCapsule.a.x, tinyCapsule.a.y });
+
+
 		// Move Sprite Follow Mouse
 		player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
 		
@@ -89,7 +122,7 @@ int main()
 
 		if (move_to.x < 0) {
 			direction.x *= -1;
-			move_to.x = 0 + npc.getAnimatedSprite().getGlobalBounds().width;
+			move_to.x = 0; //+ npc.getAnimatedSprite().getGlobalBounds().width;
 		}
 		else if (move_to.x + npc.getAnimatedSprite().getGlobalBounds().width >= 800) { 
 			direction.x *= -1;
@@ -97,7 +130,7 @@ int main()
 		}
 		else if (move_to.y < 0) { 
 			direction.y *= -1;
-			move_to.y = 0 + npc.getAnimatedSprite().getGlobalBounds().height;
+			move_to.y = 0; //+ npc.getAnimatedSprite().getGlobalBounds().height;
 		}
 		else if (move_to.y + npc.getAnimatedSprite().getGlobalBounds().height >= 600) {
 			direction.y *= -1;
@@ -106,6 +139,7 @@ int main()
 		
 		npc.getAnimatedSprite().setPosition(move_to);
 
+		
 		// Update NPC AABB set x and y
 		aabb_npc.min = c2V(
 			npc.getAnimatedSprite().getPosition().x, 
@@ -179,13 +213,31 @@ int main()
 		else {
 			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 		}
+		
+		int circleCheck = c2CircletoAABB(testCircle, aabb_player);
+		cout << ((circleCheck != 0) ? ("Collision") : "") << endl;
+		if (circleCheck) {
+			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
+		}
+		else {
+			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
+		}
+
+		int capCheck = c2AABBtoCapsule(aabb_player, tinyCapsule);
+		cout << ((capCheck != 0) ? ("Collision") : "") << endl;
+		if (capCheck) {
+			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
+		}
+		else {
+			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
+		}
 
 		// Clear screen
 		window.clear();
-
+		window.draw(maCircle);
 		// Draw the Players Current Animated Sprite
 		window.draw(player.getAnimatedSprite());
-
+		testCapsule.render(window);
 		// Draw the NPC's Current Animated Sprite
 		window.draw(npc.getAnimatedSprite());
 
