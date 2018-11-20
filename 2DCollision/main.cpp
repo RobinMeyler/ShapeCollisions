@@ -74,23 +74,25 @@ int main()
 
 	c2Poly myPol;
 
+	myPol.count = 3;
+	myPol.verts[0] = c2V(200, 150);
+	myPol.verts[1] = c2V(350, 180);
+	myPol.verts[2] = c2V(350, 250);
 	
+	c2MakePoly(&myPol);
 
+	c2x transForm{ {20,20},{ 0,0 } };
+	
 	sf::ConvexShape tri;
 	tri.setFillColor(sf::Color::Blue);
 	tri.setOrigin(40, 40);
 	tri.setPointCount(3);
-	tri.setPoint(0,  { 40, 40 } );
-	tri.setPoint(1,  { 40, 80 } );
-	tri.setPoint(2,  { 80, 40 } );
+	
+	
+
 	tri.setPosition(0, 0);
-	tri.setOrigin(20, 20);
-
-	myPol.count = tri.getPointCount();
-	myPol.verts[0] = c2V(tri.getPoint(0).x, tri.getPoint(0).y);       
-	myPol.verts[1] = c2V(tri.getPoint(1).x, tri.getPoint(1).y);
-	myPol.verts[2] = c2V(tri.getPoint(2).x, tri.getPoint(2).y);
-
+	tri.setOrigin(0, 0);
+	
 	//Setup NPC AABB
 	c2AABB aabb_npc;
 	aabb_npc.min = c2V(npc.getAnimatedSprite().getPosition().x, npc.getAnimatedSprite().getPosition().y);
@@ -130,11 +132,16 @@ int main()
 		tinyCapsule.b.x += direction.x;
 		tinyCapsule.b.y += direction.y;
 
-		tri.setPosition(tri.getPosition().x + 0.1, tri.getPosition().y + 0.1);
 
+		myPol.verts[0] = c2V(myPol.verts[0].x + 0.01, myPol.verts[0].y + 0.01);
+		myPol.verts[1] = c2V(myPol.verts[1].x + 0.01, myPol.verts[1].y + 0.01);
+		myPol.verts[2] = c2V(myPol.verts[2].x + 0.01, myPol.verts[2].y + 0.01);
+		tri.setPoint(0, sf::Vector2f{ myPol.verts[0].x, myPol.verts[0].y });
+		tri.setPoint(1, sf::Vector2f{ myPol.verts[1].x, myPol.verts[1].y });
+		tri.setPoint(2, sf::Vector2f{ myPol.verts[2].x, myPol.verts[2].y });
+		
 		testCapsule.setPosition(sf::Vector2f{ tinyCapsule.a.x, tinyCapsule.a.y });
 
-		
 		// Move Sprite Follow Mouse
 		player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
 		
@@ -185,10 +192,6 @@ int main()
 			player.getAnimatedSprite().getPosition().y + 
 			player.getAnimatedSprite().getGlobalBounds().height
 		);
-
-		myPol.verts[0] = c2V(tri.getPoint(0).x, tri.getPoint(0).y);
-		myPol.verts[1] = c2V(tri.getPoint(1).x, tri.getPoint(1).y);
-		myPol.verts[2] = c2V(tri.getPoint(2).x, tri.getPoint(2).y);
 
 		// Process events
 		sf::Event event;
@@ -256,10 +259,12 @@ int main()
 		else {
 			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 		}
+		
 
-		int triCheck = c2AABBtoCapsule(aabb_player, tinyCapsule);
+		int triCheck = c2AABBtoPoly(aabb_player, &myPol, NULL);
+
 		cout << ((triCheck != 0) ? ("Collision") : "") << endl;
-		if (capCheck) {
+		if (triCheck) {
 			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
 		}
 		else {
