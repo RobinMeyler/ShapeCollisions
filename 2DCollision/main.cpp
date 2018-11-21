@@ -31,6 +31,24 @@ int main()
 	playerAABB.setPosition(100,100);
 	playerAABB.setSize(sf::Vector2f{ 20, 20 });
 
+	sf::RectangleShape npc;
+	npc.setFillColor(sf::Color::Blue);
+	npc.setPosition(0, 0);
+	npc.setSize(sf::Vector2f{ 100, 100 });
+
+	//Setup NPC AABB
+	c2AABB aabb_npc;
+	aabb_npc.min = c2V(npc.getPosition().x, npc.getPosition().y);
+	aabb_npc.max = c2V(
+		npc.getPosition().x + npc.getGlobalBounds().width,
+		npc.getPosition().y + npc.getGlobalBounds().height);
+
+	//Setup Player AABB
+	c2AABB aabb_player;
+	aabb_player.min = c2V(playerAABB.getPosition().x, playerAABB.getPosition().y);
+	aabb_player.max = c2V(playerAABB.getGlobalBounds().width, playerAABB.getGlobalBounds().width);
+
+
 	c2Circle playerCircleC2;
 	playerCircleC2.p = { -1000, -1000 };
 	playerCircleC2.r = 30;
@@ -38,23 +56,6 @@ int main()
 	playerCircle.setPosition(playerCircleC2.p.x, playerCircleC2.p.y);
 	playerCircle.setFillColor(sf::Color::Green);
 	playerCircle.setOrigin(playerCircleC2.r, playerCircleC2.r);
-
-
-
-
-	sf::RectangleShape npc;
-	npc.setFillColor(sf::Color::Blue);
-	npc.setPosition(0, 0);
-	npc.setSize(sf::Vector2f{ 100, 100 });
-
-
-	c2Capsule tinyCapsule;
-	tinyCapsule.a = { 300, 100 };
-	tinyCapsule.b = { 400, 100 };
-	tinyCapsule.r = 30;
-
-	Capsule npcCapule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, sf::Vector2f{ tinyCapsule.b.x,tinyCapsule.b.y }, tinyCapsule.r, sf::Color::Blue);
-
 
 	c2Circle testCircle;
 	testCircle.p = { 200, 200 };
@@ -65,15 +66,19 @@ int main()
 	maCircle.setOrigin(testCircle.r, testCircle.r);
 
 
+	c2Capsule tinyCapsule;
+	tinyCapsule.a = { 300, 100 };
+	tinyCapsule.b = { 400, 100 };
+	tinyCapsule.r = 30;
+
+	Capsule npcCapule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, sf::Vector2f{ tinyCapsule.b.x,tinyCapsule.b.y }, tinyCapsule.r, sf::Color::Blue);
+
 	c2Poly myPol;
 	myPol.count = 3;
 	myPol.verts[0] = c2V(200, 150);
 	myPol.verts[1] = c2V(350, 180);
 	myPol.verts[2] = c2V(350, 250);
-	//c2MakePoly(&myPol);
 
-	c2x transForm{ {20,20},{ 0,0 } };
-	
 	sf::ConvexShape tri;
 	tri.setFillColor(sf::Color::Blue);
 	tri.setOrigin(40, 40);
@@ -81,21 +86,20 @@ int main()
 	tri.setPosition(0, 0);
 	tri.setOrigin(0, 0);
 	
-	//Setup NPC AABB
-	c2AABB aabb_npc;
-	aabb_npc.min = c2V(npc.getPosition().x, npc.getPosition().y);
-	aabb_npc.max = c2V(
-		npc.getPosition().x + npc.getGlobalBounds().width, 
-		npc.getPosition().y + npc.getGlobalBounds().height);
 
-	//Setup Player AABB
-	c2AABB aabb_player;
-	aabb_player.min = c2V(playerAABB.getPosition().x, playerAABB.getPosition().y);
-	aabb_player.max = c2V(playerAABB.getGlobalBounds().width, playerAABB.getGlobalBounds().width);
+	c2Ray npcRay;
+	npcRay.p = c2V(400, 500);
+	npcRay.d = c2V(400, 500);
+	npcRay.t = 10;
 
+	sf::Vertex startOfRay;
+	sf::Vertex endofRay;
 
-	// Initialize Input
-	Input input;
+	startOfRay = sf::Vertex{ sf::Vector2f{npcRay.p.x, npcRay.p.y}, sf::Color::Green };
+	endofRay = sf::Vertex{ sf::Vector2f{npcRay.d.x, npcRay.d.y}, sf::Color::Green };
+	npcRay.d = c2Norm(npcRay.d);
+	sf::VertexArray vertexArray;
+	vertexArray.setPrimitiveType(sf::Lines);
 
 	// Collision result
 	int result = 0;
@@ -106,6 +110,7 @@ int main()
 	// Start the game loop
 	while (window.isOpen())
 	{
+		vertexArray.clear();
 		if (myPlayerShape == AABB)
 		{
 			
@@ -113,8 +118,10 @@ int main()
 			{
 				playerCircleC2.p.x = -1000;
 				playerCircleC2.p.y = -1000;
-				playerAABB.setPosition(200, 200);
-
+				npcRay.p = c2V(-400, -500);
+				npcRay.d = c2V(-400, -500);
+				startOfRay = sf::Vertex{ sf::Vector2f{npcRay.p.x, npcRay.p.y}, sf::Color::Green };
+				endofRay = sf::Vertex{ sf::Vector2f{npcRay.d.x, npcRay.d.y}, sf::Color::Green };
 				// Reset
 				myPol.verts[0] = c2V(200, 150);
 				myPol.verts[1] = c2V(350, 180);
@@ -141,9 +148,9 @@ int main()
 			}
 
 			//  AABB to Circle collision check 
-			int circleCheck = c2CircletoAABB(testCircle, aabb_player);
-			cout << ((circleCheck != 0) ? ("AABB to Circle - Collision") : "") << endl;
-			if (circleCheck) {
+			result = c2CircletoAABB(testCircle, aabb_player);
+			cout << ((result != 0) ? ("AABB to Circle - Collision") : "") << endl;
+			if (result) {
 				playerAABB.setFillColor(sf::Color(255, 0, 0));
 				collided = true;
 			}
@@ -152,9 +159,9 @@ int main()
 			}
 
 			//  AABB to Polygon Capsule check 
-			int capCheck = c2AABBtoCapsule(aabb_player, tinyCapsule);
-			cout << ((capCheck != 0) ? ("AABB to Capsule - Collision") : "") << endl;
-			if (capCheck) {
+			result = c2AABBtoCapsule(aabb_player, tinyCapsule);
+			cout << ((result != 0) ? ("AABB to Capsule - Collision") : "") << endl;
+			if (result) {
 				playerAABB.setFillColor(sf::Color(255, 0, 0));
 				collided = true;
 			}
@@ -163,9 +170,9 @@ int main()
 			}
 
 			//  AABB to Polygon collision check 
-			int triCheck = c2AABBtoPoly(aabb_player, &myPol, NULL);
-			cout << ((triCheck != 0) ? ("AABB to Polygon - Collision") : "") << endl;
-			if (triCheck) {
+			result = c2AABBtoPoly(aabb_player, &myPol, NULL);
+			cout << ((result != 0) ? ("AABB to Polygon - Collision") : "") << endl;
+			if (result) {
 				playerAABB.setFillColor(sf::Color(255, 0, 0));
 				collided = true;
 			}
@@ -180,12 +187,11 @@ int main()
 				firstEntry = true;
 			}
 
-
-
-
-
-
-
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::M))
+			{
+				myPlayerShape = Ray;
+				firstEntry = true;
+			}
 			collided = false;
 		}
 		else if (myPlayerShape == Circle)
@@ -193,10 +199,10 @@ int main()
 			if (firstEntry == true)
 			{
 				playerAABB.setPosition(-2000, -2000);
-
-
-
-
+				npcRay.p = c2V(-400, -500);
+				npcRay.d = c2V(-400, -500);
+				startOfRay = sf::Vertex{ sf::Vector2f{npcRay.p.x, npcRay.p.y}, sf::Color::Green };
+				endofRay = sf::Vertex{ sf::Vector2f{npcRay.d.x, npcRay.d.y}, sf::Color::Green };
 				// Reset
 				myPol.verts[0] = c2V(200, 150);
 				myPol.verts[1] = c2V(350, 180);
@@ -207,15 +213,14 @@ int main()
 				testCircle.p.x = 200;
 				testCircle.p.y = 200;
 				firstEntry = false;
-
 			}
 			playerCircleC2.p.x = window.mapPixelToCoords(sf::Mouse::getPosition(window)).x;
 			playerCircleC2.p.y = window.mapPixelToCoords(sf::Mouse::getPosition(window)).y;
 
 			// Circle to Capsule
-			int playerCircleCheck = c2CircletoCapsule(playerCircleC2, tinyCapsule);
-			cout << ((playerCircleCheck != 0) ? ("Circle to Capsule - Collision") : "") << endl;
-			if (playerCircleCheck) {
+			result = c2CircletoCapsule(playerCircleC2, tinyCapsule);
+			cout << ((result != 0) ? ("Circle to Capsule - Collision") : "") << endl;
+			if (result) {
 				playerCircle.setFillColor(sf::Color(255, 0, 0));
 				collided = true;
 			}
@@ -224,9 +229,9 @@ int main()
 			}
 
 			// Circle to Poly
-			int circleToPolyCheck = c2CircletoPoly(playerCircleC2, &myPol, NULL);
-			cout << ((circleToPolyCheck != 0) ? ("Circle to Poly - Collision") : "") << endl;
-			if (circleToPolyCheck) {
+			result = c2CircletoPoly(playerCircleC2, &myPol, NULL);
+			cout << ((result != 0) ? ("Circle to Poly - Collision") : "") << endl;
+			if (result) {
 				playerCircle.setFillColor(sf::Color(255, 0, 0));
 				collided = true;
 			}
@@ -235,9 +240,9 @@ int main()
 			}
 
 			// Circle to AABB
-			int circleBoxCheck = c2CircletoAABB(playerCircleC2, aabb_npc);
-			cout << ((circleBoxCheck != 0) ? ("Circle to AABB - Collision") : "") << endl;
-			if (circleBoxCheck) {
+			result = c2CircletoAABB(playerCircleC2, aabb_npc);
+			cout << ((result != 0) ? ("Circle to AABB - Collision") : "") << endl;
+			if (result) {
 				playerCircle.setFillColor(sf::Color(255, 0, 0));
 				collided = true;
 			}
@@ -246,9 +251,9 @@ int main()
 			}
 
 			// Circle to Circle
-			int CircleCircle = c2CircletoCircle(playerCircleC2, testCircle);
-			cout << ((CircleCircle != 0) ? ("Circle to Circle - Collision") : "") << endl;
-			if (CircleCircle) {
+			result = c2CircletoCircle(playerCircleC2, testCircle);
+			cout << ((result != 0) ? ("Circle to Circle - Collision") : "") << endl;
+			if (result) {
 				playerCircle.setFillColor(sf::Color(255, 0, 0));
 				collided = true;
 			}
@@ -261,7 +266,11 @@ int main()
 				myPlayerShape = AABB;
 				firstEntry = true;
 			}
-
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::M))
+			{
+				myPlayerShape = Ray;
+				firstEntry = true;
+			}
 
 			collided = false;
 		}
@@ -269,12 +278,12 @@ int main()
 		{
 			if (firstEntry == true)
 			{
-
-
+				playerAABB.setPosition(-2000, -2000);
+				playerCircleC2.p.x = -1000;
+				playerCircleC2.p.y = -1000;
+				npcRay.p = c2V(400, 500);
+				npcRay.d = c2V(400, 500);
 				
-
-
-
 				// Reset
 				myPol.verts[0] = c2V(200, 150);
 				myPol.verts[1] = c2V(350, 180);
@@ -287,10 +296,43 @@ int main()
 				firstEntry = false;
 
 			}
+			c2v mousePosition = { window.mapPixelToCoords(sf::Mouse::getPosition(window)).x, window.mapPixelToCoords(sf::Mouse::getPosition(window)).y };
 
+			// Getting the length of the ray
+			sf::Vector2f dist = { mousePosition.x - npcRay.p.x, mousePosition.y - npcRay.p.y };
+			double len = std::sqrt(dist.x * dist.x + dist.y * dist.y);
+			npcRay.t = len;
+
+			npcRay.d.x = mousePosition.x - npcRay.p.x;
+			npcRay.d.y = mousePosition.y - npcRay.p.y;
+			endofRay = sf::Vertex{ sf::Vector2f{mousePosition.x, mousePosition.y}, sf::Color::Green };
+			npcRay.d = c2Norm(npcRay.d);
+			
+			startOfRay = sf::Vertex{ sf::Vector2f{npcRay.p.x, npcRay.p.y}, sf::Color::Green };
+			c2Raycast cast;
+			result = c2RaytoAABB(npcRay, aabb_npc, &cast);
+			cout << ((result != 0) ? ("Ray to AABB - Collision") : "") << endl;
+			if (result) {
+				startOfRay.color =  sf::Color::Red ;
+				endofRay.color = sf::Color::Red;
+			}
+			else if (collided == false) {
+				startOfRay.color = sf::Color::Green;
+				endofRay.color = sf::Color::Green;
+			}
 			
 
-			
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
+			{
+				myPlayerShape = Circle;
+				firstEntry = true;
+			}
+
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
+			{
+				myPlayerShape = AABB;
+				firstEntry = true;
+			}
 		}
 
 		// Circle
@@ -360,26 +402,14 @@ int main()
 				window.close();
 				break;
 			case sf::Event::KeyPressed:
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-				{
-					input.setCurrent(Input::Action::LEFT);
-				}
-				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-				{
-					input.setCurrent(Input::Action::RIGHT);
-				}
-				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-				{
-					input.setCurrent(Input::Action::UP);
-				}
-				break;
+
 			default:
-				input.setCurrent(Input::Action::IDLE);
 				break;
 			}
 		}
-
-
+		
+		vertexArray.append(startOfRay);												// Joining vertexes
+		vertexArray.append(endofRay);
 		// Clear screen
 		window.clear(sf::Color::White);
 		window.draw(maCircle);
@@ -391,6 +421,7 @@ int main()
 		window.draw(tri);
 		window.draw(playerCircle);
 		window.draw(playerAABB);
+		window.draw(vertexArray);
 		// Update the window
 		window.display();
 	}
