@@ -12,55 +12,48 @@
 
 using namespace std;
 
+
 int main()
 {
 	// Create the main window
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
+	enum CurrentShape
+	{
+		Circle,
+		AABB,
+		Ray
+	};
+	CurrentShape myPlayerShape = AABB;
+	bool firstEntry = true;
+	bool collided = false;
+	sf::RectangleShape playerAABB;
+	playerAABB.setFillColor(sf::Color::Red);
+	playerAABB.setPosition(100,100);
+	playerAABB.setSize(sf::Vector2f{ 20, 20 });
 
-	// Load a NPC's sprites to display
-	sf::Texture npc_texture;
-	if (!npc_texture.loadFromFile("assets\\grid.png")) {
-		DEBUG_MSG("Failed to load file");
-		return EXIT_FAILURE;
-	}
+	c2Circle playerCircleC2;
+	playerCircleC2.p = { -1000, -1000 };
+	playerCircleC2.r = 30;
+	sf::CircleShape playerCircle(playerCircleC2.r);
+	playerCircle.setPosition(playerCircleC2.p.x, playerCircleC2.p.y);
+	playerCircle.setFillColor(sf::Color::Red);
+	playerCircle.setOrigin(playerCircleC2.r, playerCircleC2.r);
 
-	// Load a mouse texture to display
-	sf::Texture player_texture;
-	if (!player_texture.loadFromFile("assets\\player.png")) {
-		DEBUG_MSG("Failed to load file");
-		return EXIT_FAILURE;
-	}
 
-	// Setup NPC's Default Animated Sprite
-	AnimatedSprite npc_animated_sprite(npc_texture);
-	npc_animated_sprite.addFrame(sf::IntRect(3, 3, 84, 84));
-	npc_animated_sprite.addFrame(sf::IntRect(88, 3, 84, 84));
-	npc_animated_sprite.addFrame(sf::IntRect(173, 3, 84, 84));
-	npc_animated_sprite.addFrame(sf::IntRect(258, 3, 84, 84));
-	npc_animated_sprite.addFrame(sf::IntRect(343, 3, 84, 84));
-	npc_animated_sprite.addFrame(sf::IntRect(428, 3, 84, 84));
 
-	// Setup Players Default Animated Sprite
-	AnimatedSprite player_animated_sprite(player_texture);
-	player_animated_sprite.addFrame(sf::IntRect(3, 3, 20, 20));
-	player_animated_sprite.addFrame(sf::IntRect(88, 3, 20, 20));
-	player_animated_sprite.addFrame(sf::IntRect(173, 3, 20, 20));
-	player_animated_sprite.addFrame(sf::IntRect(258, 3, 20, 20));
-	player_animated_sprite.addFrame(sf::IntRect(343, 3, 20, 20));
-	player_animated_sprite.addFrame(sf::IntRect(428, 3, 20, 20));
 
-	// Setup the NPC
-	GameObject &npc = NPC(npc_animated_sprite);
+	sf::RectangleShape npc;
+	npc.setFillColor(sf::Color::Blue);
+	npc.setPosition(0, 0);
+	npc.setSize(sf::Vector2f{ 100, 100 });
 
-	// Setup the Player
-	GameObject &player = Player(player_animated_sprite);
 
 	c2Capsule tinyCapsule;
 	tinyCapsule.a = { 300, 100 };
 	tinyCapsule.b = { 400, 100 };
 	tinyCapsule.r = 30;
 
-	Capsule testCapsule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, sf::Vector2f{ tinyCapsule.b.x,tinyCapsule.b.y }, tinyCapsule.r, sf::Color::Red);
+	Capsule npcCapule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, sf::Vector2f{ tinyCapsule.b.x,tinyCapsule.b.y }, tinyCapsule.r, sf::Color::Red);
 
 
 	c2Circle testCircle;
@@ -73,13 +66,11 @@ int main()
 
 
 	c2Poly myPol;
-
 	myPol.count = 3;
 	myPol.verts[0] = c2V(200, 150);
 	myPol.verts[1] = c2V(350, 180);
 	myPol.verts[2] = c2V(350, 250);
-	
-	c2MakePoly(&myPol);
+	//c2MakePoly(&myPol);
 
 	c2x transForm{ {20,20},{ 0,0 } };
 	
@@ -87,25 +78,20 @@ int main()
 	tri.setFillColor(sf::Color::Blue);
 	tri.setOrigin(40, 40);
 	tri.setPointCount(3);
-	
-	
-
 	tri.setPosition(0, 0);
 	tri.setOrigin(0, 0);
 	
 	//Setup NPC AABB
 	c2AABB aabb_npc;
-	aabb_npc.min = c2V(npc.getAnimatedSprite().getPosition().x, npc.getAnimatedSprite().getPosition().y);
+	aabb_npc.min = c2V(npc.getPosition().x, npc.getPosition().y);
 	aabb_npc.max = c2V(
-		npc.getAnimatedSprite().getPosition().x +
-		npc.getAnimatedSprite().getGlobalBounds().width, 
-		npc.getAnimatedSprite().getPosition().y +
-		npc.getAnimatedSprite().getGlobalBounds().height);
+		npc.getPosition().x + npc.getGlobalBounds().width, 
+		npc.getPosition().y + npc.getGlobalBounds().height);
 
 	//Setup Player AABB
 	c2AABB aabb_player;
-	aabb_player.min = c2V(player.getAnimatedSprite().getPosition().x, player.getAnimatedSprite().getPosition().y);
-	aabb_player.max = c2V(player.getAnimatedSprite().getGlobalBounds().width / 6, player.getAnimatedSprite().getGlobalBounds().width / 6);
+	aabb_player.min = c2V(playerAABB.getPosition().x, playerAABB.getPosition().y);
+	aabb_player.max = c2V(playerAABB.getGlobalBounds().width, playerAABB.getGlobalBounds().width);
 
 
 	// Initialize Input
@@ -120,12 +106,155 @@ int main()
 	// Start the game loop
 	while (window.isOpen())
 	{
+		if (myPlayerShape == AABB)
+		{
+			
+			if (firstEntry == true)
+			{
+				playerCircleC2.p.x = -1000;
+				playerCircleC2.p.y = -1000;
+				playerAABB.setPosition(200, 200);
+
+				// Reset
+				myPol.verts[0] = c2V(200, 150);
+				myPol.verts[1] = c2V(350, 180);
+				myPol.verts[2] = c2V(350, 250);
+				tinyCapsule.a = { 300, 100 };
+				tinyCapsule.b = { 400, 100 };
+				npc.setPosition(0, 0);
+				testCircle.p.x = 200;
+				testCircle.p.y = 200;
+				firstEntry = false;
+
+			}
+			playerAABB.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+
+			//  AABB to AABB collision check 
+			result = c2AABBtoAABB(aabb_player, aabb_npc);
+			cout << ((result != 0) ? ("AABB to AABB - Collision ") : "") << endl;
+			if (result) {
+				playerAABB.setFillColor(sf::Color(255, 0, 0));
+				collided = true;
+			}
+			else if (collided == false) {
+				playerAABB.setFillColor(sf::Color(0, 255, 0));
+			}
+
+			//  AABB to Circle collision check 
+			int circleCheck = c2CircletoAABB(testCircle, aabb_player);
+			cout << ((circleCheck != 0) ? ("AABB to Circle - Collision") : "") << endl;
+			if (circleCheck) {
+				playerAABB.setFillColor(sf::Color(255, 0, 0));
+				collided = true;
+			}
+			else if (collided == false) {
+				playerAABB.setFillColor(sf::Color(0, 255, 0));
+			}
+
+			//  AABB to Polygon Capsule check 
+			int capCheck = c2AABBtoCapsule(aabb_player, tinyCapsule);
+			cout << ((capCheck != 0) ? ("AABB to Capsule - Collision") : "") << endl;
+			if (capCheck) {
+				playerAABB.setFillColor(sf::Color(255, 0, 0));
+				collided = true;
+			}
+			else if (collided == false) {
+				playerAABB.setFillColor(sf::Color(0, 255, 0));
+			}
+
+			//  AABB to Polygon collision check 
+			int triCheck = c2AABBtoPoly(aabb_player, &myPol, NULL);
+			cout << ((triCheck != 0) ? ("AABB to Polygon - Collision") : "") << endl;
+			if (triCheck) {
+				playerAABB.setFillColor(sf::Color(255, 0, 0));
+				collided = true;
+			}
+			else if (collided == false) {
+				playerAABB.setFillColor(sf::Color(0, 255, 0));
+			}
+
+
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
+			{
+				myPlayerShape = Circle;
+				firstEntry = true;
+			}
+
+
+
+
+
+
+
+			collided = false;
+		}
+		else if (myPlayerShape == Circle)
+		{
+			if (firstEntry == true)
+			{
+				playerAABB.setPosition(-2000, -2000);
+
+
+
+
+				// Reset
+				myPol.verts[0] = c2V(200, 150);
+				myPol.verts[1] = c2V(350, 180);
+				myPol.verts[2] = c2V(350, 250);
+				tinyCapsule.a = { 300, 100 };
+				tinyCapsule.b = { 400, 100 };
+				npc.setPosition(0, 0);
+				testCircle.p.x = 200;
+				testCircle.p.y = 200;
+				firstEntry = false;
+
+			}
+			playerCircleC2.p.x = window.mapPixelToCoords(sf::Mouse::getPosition(window)).x;
+			playerCircleC2.p.y = window.mapPixelToCoords(sf::Mouse::getPosition(window)).y;
+
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
+			{
+				myPlayerShape = AABB;
+				firstEntry = true;
+			}
+
+
+
+		}
+		else if (myPlayerShape == Ray)
+		{
+			if (firstEntry == true)
+			{
+
+
+				
+
+
+
+				// Reset
+				myPol.verts[0] = c2V(200, 150);
+				myPol.verts[1] = c2V(350, 180);
+				myPol.verts[2] = c2V(350, 250);
+				tinyCapsule.a = { 300, 100 };
+				tinyCapsule.b = { 400, 100 };
+				npc.setPosition(0, 0);
+				testCircle.p.x = 200;
+				testCircle.p.y = 200;
+				firstEntry = false;
+
+			}
+
+			
+
+			
+		}
+
 		// Circle
 		testCircle.p.x += direction.x;
 		testCircle.p.y += direction.y;
 
 		maCircle.setPosition(testCircle.p.x, testCircle.p.y);
-		
+		playerCircle.setPosition(playerCircleC2.p.x, playerCircleC2.p.y);
 		// Capsule
 		tinyCapsule.a.x += direction.x;
 		tinyCapsule.a.y += direction.y;
@@ -139,59 +268,42 @@ int main()
 		tri.setPoint(0, sf::Vector2f{ myPol.verts[0].x, myPol.verts[0].y });
 		tri.setPoint(1, sf::Vector2f{ myPol.verts[1].x, myPol.verts[1].y });
 		tri.setPoint(2, sf::Vector2f{ myPol.verts[2].x, myPol.verts[2].y });
-		
-		testCapsule.setPosition(sf::Vector2f{ tinyCapsule.a.x, tinyCapsule.a.y });
 
-		// Move Sprite Follow Mouse
-		player.getAnimatedSprite().setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
-		
+		npcCapule.setPosition(sf::Vector2f{ tinyCapsule.a.x, tinyCapsule.a.y });
+
 		// Move The NPC
-		sf::Vector2f move_to(npc.getAnimatedSprite().getPosition().x + direction.x, npc.getAnimatedSprite().getPosition().y + direction.y);
-
+		sf::Vector2f move_to(npc.getPosition().x + direction.x, npc.getPosition().y + direction.y);
 		if (move_to.x < 0) {
 			direction.x *= -1;
-			move_to.x = 0; //+ npc.getAnimatedSprite().getGlobalBounds().width;
+			move_to.x = 0; 
 		}
-		else if (move_to.x + npc.getAnimatedSprite().getGlobalBounds().width >= 800) { 
+		else if (move_to.x + npc.getGlobalBounds().width >= 800) {
 			direction.x *= -1;
-			move_to.x = 800 - npc.getAnimatedSprite().getGlobalBounds().width;
+			move_to.x = 800 - npc.getGlobalBounds().width;
 		}
-		else if (move_to.y < 0) { 
+		else if (move_to.y < 0) {
 			direction.y *= -1;
-			move_to.y = 0; //+ npc.getAnimatedSprite().getGlobalBounds().height;
+			move_to.y = 0; 
 		}
-		else if (move_to.y + npc.getAnimatedSprite().getGlobalBounds().height >= 600) {
+		else if (move_to.y + npc.getGlobalBounds().height >= 600) {
 			direction.y *= -1;
-			move_to.y = 600 - npc.getAnimatedSprite().getGlobalBounds().height;
+			move_to.y = 600 - npc.getGlobalBounds().height;
 		}
-		
-		npc.getAnimatedSprite().setPosition(move_to);
+		npc.setPosition(move_to);
 
-		
 		// Update NPC AABB set x and y
-		aabb_npc.min = c2V(
-			npc.getAnimatedSprite().getPosition().x, 
-			npc.getAnimatedSprite().getPosition().y
-		);
-
-		aabb_npc.max = c2V(
-			npc.getAnimatedSprite().getPosition().x +
-			npc.getAnimatedSprite().getGlobalBounds().width,
-			npc.getAnimatedSprite().getPosition().y +
-			npc.getAnimatedSprite().getGlobalBounds().height
-		);
+		aabb_npc.min = c2V(npc.getPosition().x, npc.getPosition().y);
+		aabb_npc.max = c2V(npc.getPosition().x + npc.getGlobalBounds().width, npc.getPosition().y + npc.getGlobalBounds().height);
 
 		// Update Player AABB
-		aabb_player.min = c2V(
-			player.getAnimatedSprite().getPosition().x, 
-			player.getAnimatedSprite().getPosition().y
-		);
-		aabb_player.max = c2V(
-			player.getAnimatedSprite().getPosition().x +
-			player.getAnimatedSprite().getGlobalBounds().width, 
-			player.getAnimatedSprite().getPosition().y + 
-			player.getAnimatedSprite().getGlobalBounds().height
-		);
+		aabb_player.min = c2V(playerAABB.getPosition().x, playerAABB.getPosition().y);
+		aabb_player.max = c2V(playerAABB.getPosition().x + playerAABB.getGlobalBounds().width, playerAABB.getPosition().y + playerAABB.getGlobalBounds().height);
+
+
+
+
+
+
 
 		// Process events
 		sf::Event event;
@@ -223,67 +335,23 @@ int main()
 			}
 		}
 
-		// Handle input to Player
-		player.handleInput(input);
-
-		// Update the Player
-		player.update();
-
-		// Update the Player
-		npc.update();
-
-		// Check for collisions
-		result = c2AABBtoAABB(aabb_player, aabb_npc);
-		cout << ((result != 0) ? ("Collision") : "") << endl;
-		if (result){
-			player.getAnimatedSprite().setColor(sf::Color(255,0,0));
-		}
-		else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
-		}
-		
-		int circleCheck = c2CircletoAABB(testCircle, aabb_player);
-		cout << ((circleCheck != 0) ? ("Collision") : "") << endl;
-		if (circleCheck) {
-			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
-		}
-		else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
-		}
-
-		int capCheck = c2AABBtoCapsule(aabb_player, tinyCapsule);
-		cout << ((capCheck != 0) ? ("Collision") : "") << endl;
-		if (capCheck) {
-			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
-		}
-		else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
-		}
-		
-
-		int triCheck = c2AABBtoPoly(aabb_player, &myPol, NULL);
-
-		cout << ((triCheck != 0) ? ("Collision") : "") << endl;
-		if (triCheck) {
-			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
-		}
-		else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
-		}
-
 
 		// Clear screen
 		window.clear();
 		window.draw(maCircle);
 		// Draw the Players Current Animated Sprite
-		window.draw(player.getAnimatedSprite());
-		testCapsule.render(window);
+		window.draw(playerAABB);
+		npcCapule.render(window);
 		// Draw the NPC's Current Animated Sprite
-		window.draw(npc.getAnimatedSprite());
+		window.draw(npc);
 		window.draw(tri);
+		window.draw(playerCircle);
 		// Update the window
 		window.display();
 	}
 
 	return EXIT_SUCCESS;
 };
+
+
+
