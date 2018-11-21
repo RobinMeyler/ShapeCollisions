@@ -27,7 +27,7 @@ int main()
 	bool firstEntry = true;
 	bool collided = false;
 	sf::RectangleShape playerAABB;
-	playerAABB.setFillColor(sf::Color::Red);
+	playerAABB.setFillColor(sf::Color::Green);
 	playerAABB.setPosition(100,100);
 	playerAABB.setSize(sf::Vector2f{ 20, 20 });
 
@@ -36,7 +36,7 @@ int main()
 	playerCircleC2.r = 30;
 	sf::CircleShape playerCircle(playerCircleC2.r);
 	playerCircle.setPosition(playerCircleC2.p.x, playerCircleC2.p.y);
-	playerCircle.setFillColor(sf::Color::Red);
+	playerCircle.setFillColor(sf::Color::Green);
 	playerCircle.setOrigin(playerCircleC2.r, playerCircleC2.r);
 
 
@@ -53,7 +53,7 @@ int main()
 	tinyCapsule.b = { 400, 100 };
 	tinyCapsule.r = 30;
 
-	Capsule npcCapule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, sf::Vector2f{ tinyCapsule.b.x,tinyCapsule.b.y }, tinyCapsule.r, sf::Color::Red);
+	Capsule npcCapule(sf::Vector2f{ tinyCapsule.a.x,tinyCapsule.a.y }, sf::Vector2f{ tinyCapsule.b.x,tinyCapsule.b.y }, tinyCapsule.r, sf::Color::Blue);
 
 
 	c2Circle testCircle;
@@ -61,7 +61,7 @@ int main()
 	testCircle.r = 50;
 	sf::CircleShape maCircle(testCircle.r);
 	maCircle.setPosition(testCircle.p.x, testCircle.p.y);
-	maCircle.setFillColor(sf::Color::Red);
+	maCircle.setFillColor(sf::Color::Blue);
 	maCircle.setOrigin(testCircle.r, testCircle.r);
 
 
@@ -212,6 +212,50 @@ int main()
 			playerCircleC2.p.x = window.mapPixelToCoords(sf::Mouse::getPosition(window)).x;
 			playerCircleC2.p.y = window.mapPixelToCoords(sf::Mouse::getPosition(window)).y;
 
+			// Circle to Capsule
+			int playerCircleCheck = c2CircletoCapsule(playerCircleC2, tinyCapsule);
+			cout << ((playerCircleCheck != 0) ? ("Circle to Capsule - Collision") : "") << endl;
+			if (playerCircleCheck) {
+				playerCircle.setFillColor(sf::Color(255, 0, 0));
+				collided = true;
+			}
+			else if (collided == false) {
+				playerCircle.setFillColor(sf::Color(0, 255, 0));
+			}
+
+			// Circle to Poly
+			int circleToPolyCheck = c2CircletoPoly(playerCircleC2, &myPol, NULL);
+			cout << ((circleToPolyCheck != 0) ? ("Circle to Poly - Collision") : "") << endl;
+			if (circleToPolyCheck) {
+				playerCircle.setFillColor(sf::Color(255, 0, 0));
+				collided = true;
+			}
+			else if (collided == false) {
+				playerCircle.setFillColor(sf::Color(0, 255, 0));
+			}
+
+			// Circle to AABB
+			int circleBoxCheck = c2CircletoAABB(playerCircleC2, aabb_npc);
+			cout << ((circleBoxCheck != 0) ? ("Circle to AABB - Collision") : "") << endl;
+			if (circleBoxCheck) {
+				playerCircle.setFillColor(sf::Color(255, 0, 0));
+				collided = true;
+			}
+			else if (collided == false) {
+				playerCircle.setFillColor(sf::Color(0, 255, 0));
+			}
+
+			// Circle to Circle
+			int CircleCircle = c2CircletoCircle(playerCircleC2, testCircle);
+			cout << ((CircleCircle != 0) ? ("Circle to Circle - Collision") : "") << endl;
+			if (CircleCircle) {
+				playerCircle.setFillColor(sf::Color(255, 0, 0));
+				collided = true;
+			}
+			else if (collided == false) {
+				playerCircle.setFillColor(sf::Color(0, 255, 0));
+			}
+
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
 			{
 				myPlayerShape = AABB;
@@ -219,7 +263,7 @@ int main()
 			}
 
 
-
+			collided = false;
 		}
 		else if (myPlayerShape == Ray)
 		{
@@ -337,15 +381,16 @@ int main()
 
 
 		// Clear screen
-		window.clear();
+		window.clear(sf::Color::White);
 		window.draw(maCircle);
 		// Draw the Players Current Animated Sprite
-		window.draw(playerAABB);
+		
 		npcCapule.render(window);
 		// Draw the NPC's Current Animated Sprite
 		window.draw(npc);
 		window.draw(tri);
 		window.draw(playerCircle);
+		window.draw(playerAABB);
 		// Update the window
 		window.display();
 	}
