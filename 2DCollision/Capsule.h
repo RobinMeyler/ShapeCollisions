@@ -13,7 +13,7 @@ public:
 	void setPosition(sf::Vector2f t_pos);
 	void adjustBridge();
 	sf::Vector2f getPosition();
-
+	float getRadius();
 private:
 	sf::CircleShape m_startCircle;
 	sf::CircleShape m_endCircle;

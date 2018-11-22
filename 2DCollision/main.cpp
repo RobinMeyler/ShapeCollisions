@@ -16,6 +16,7 @@ using namespace std;
 int main()
 {
 	// Create the main window
+	srand(time(nullptr));
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
 	enum CurrentShape
 	{
@@ -33,7 +34,7 @@ int main()
 
 	sf::RectangleShape npc;
 	npc.setFillColor(sf::Color::Blue);
-	npc.setPosition(0, 0);
+	npc.setPosition(rand() % 600 + 100, rand() % 400 + 100);
 	npc.setSize(sf::Vector2f{ 100, 100 });
 
 	//Setup NPC AABB
@@ -58,7 +59,7 @@ int main()
 	playerCircle.setOrigin(playerCircleC2.r, playerCircleC2.r);
 
 	c2Circle testCircle;
-	testCircle.p = { 200, 200 };
+	testCircle.p = { rand() % 600 + 100 * 0.0f, rand() % 400 + 100 * 0.0f };
 	testCircle.r = 50;
 	sf::CircleShape maCircle(testCircle.r);
 	maCircle.setPosition(testCircle.p.x, testCircle.p.y);
@@ -107,6 +108,10 @@ int main()
 	// Direction of movement of NPC
 	sf::Vector2f direction(0.01f, 0.02f);
 	
+	sf::Vector2f circleMovement{ 0.02f, 0.01f };
+	sf::Vector2f capMovement{ 0.01f, 0.03f };
+	sf::Vector2f polyMovement{ 0.03f, 0.01f };
+	//sf::Vector2f circleMovement{ 0.02f, 0.01f };
 	// Start the game loop
 	while (window.isOpen())
 	{
@@ -128,9 +133,9 @@ int main()
 				myPol.verts[2] = c2V(350, 250);
 				tinyCapsule.a = { 300, 100 };
 				tinyCapsule.b = { 400, 100 };
-				npc.setPosition(0, 0);
-				testCircle.p.x = 200;
-				testCircle.p.y = 200;
+				npc.setPosition(rand() % 600 + 100, rand() % 400 + 100);
+				testCircle.p.x = rand() % 600 + 100;
+				testCircle.p.y = rand() % 400 + 100;
 				firstEntry = false;
 
 			}
@@ -209,9 +214,9 @@ int main()
 				myPol.verts[2] = c2V(350, 250);
 				tinyCapsule.a = { 300, 100 };
 				tinyCapsule.b = { 400, 100 };
-				npc.setPosition(0, 0);
-				testCircle.p.x = 200;
-				testCircle.p.y = 200;
+				npc.setPosition(rand() % 600 + 100, rand() % 400 + 100);
+				testCircle.p.x = rand() % 600 + 100;
+				testCircle.p.y = rand() % 400 + 100;
 				firstEntry = false;
 			}
 			playerCircleC2.p.x = window.mapPixelToCoords(sf::Mouse::getPosition(window)).x;
@@ -290,9 +295,9 @@ int main()
 				myPol.verts[2] = c2V(350, 250);
 				tinyCapsule.a = { 300, 100 };
 				tinyCapsule.b = { 400, 100 };
-				npc.setPosition(0, 0);
-				testCircle.p.x = 200;
-				testCircle.p.y = 200;
+				npc.setPosition(rand() % 600 + 100, rand() % 400 + 100);
+				testCircle.p.x = rand() % 600 + 100;
+				testCircle.p.y = rand() % 400 + 100;
 				firstEntry = false;
 
 			}
@@ -375,30 +380,81 @@ int main()
 			collided = false;
 		}
 
+		if (testCircle.p.x + maCircle.getRadius() > 800)
+		{
+			circleMovement.x = -circleMovement.x;
+		}
+		if (testCircle.p.x - maCircle.getRadius() < 0)
+		{
+			circleMovement.x = -circleMovement.x;
+		}
+		if (testCircle.p.y + maCircle.getRadius() > 600)
+		{
+			circleMovement.y = -circleMovement.y;
+		}
+		if (testCircle.p.y - maCircle.getRadius() < 0)
+		{
+			circleMovement.y = -circleMovement.y;
+		}
 		// Circle
-		testCircle.p.x += direction.x;
-		testCircle.p.y += direction.y;
+		testCircle.p.x += 5*circleMovement.x;
+		testCircle.p.y += 5*circleMovement.y;
 
 		maCircle.setPosition(testCircle.p.x, testCircle.p.y);
 		playerCircle.setPosition(playerCircleC2.p.x, playerCircleC2.p.y);
+
 		// Capsule
-		tinyCapsule.a.x += direction.x;
-		tinyCapsule.a.y += direction.y;
-		tinyCapsule.b.x += direction.x;
-		tinyCapsule.b.y += direction.y;
+
+		if (tinyCapsule.b.x + npcCapule.getRadius() > 800)
+		{
+			capMovement.x = -capMovement.x;
+		}
+		if (tinyCapsule.a.x - npcCapule.getRadius() < 0)
+		{
+			capMovement.x = -capMovement.x;
+		}
+		if (tinyCapsule.a.y + npcCapule.getRadius() > 600)
+		{
+			capMovement.y = -capMovement.y;
+		}
+		if (tinyCapsule.a.y - npcCapule.getRadius() < 0)
+		{
+			capMovement.y = -capMovement.y;
+		}
+		tinyCapsule.a.x += 5 * capMovement.x;
+		tinyCapsule.a.y += 5 * capMovement.y;
+		tinyCapsule.b.x += 5 * capMovement.x;
+		tinyCapsule.b.y += 5 * capMovement.y;
+		npcCapule.setPosition(sf::Vector2f{ tinyCapsule.a.x, tinyCapsule.a.y });
+
+		//Polygon
 
 
-		myPol.verts[0] = c2V(myPol.verts[0].x + 0.01, myPol.verts[0].y + 0.01);
-		myPol.verts[1] = c2V(myPol.verts[1].x + 0.01, myPol.verts[1].y + 0.01);
-		myPol.verts[2] = c2V(myPol.verts[2].x + 0.01, myPol.verts[2].y + 0.01);
+		if (myPol.verts[1].x > 800)
+		{
+			polyMovement.x = -polyMovement.x;
+		}
+		if (myPol.verts[0].x < 0)
+		{
+			polyMovement.x = -polyMovement.x;
+		}
+		if (myPol.verts[2].y > 600)
+		{
+			polyMovement.y = -polyMovement.y;
+		}
+		if (myPol.verts[0].y < 0)
+		{
+			polyMovement.y = -polyMovement.y;
+		}
+		myPol.verts[0] = c2V(myPol.verts[0].x + 5 * polyMovement.x, myPol.verts[0].y + 5*polyMovement.y);
+		myPol.verts[1] = c2V(myPol.verts[1].x + 5 * polyMovement.x, myPol.verts[1].y + 5 * polyMovement.y);
+		myPol.verts[2] = c2V(myPol.verts[2].x + 5*polyMovement.x, myPol.verts[2].y + 5 * polyMovement.y);
 		tri.setPoint(0, sf::Vector2f{ myPol.verts[0].x, myPol.verts[0].y });
 		tri.setPoint(1, sf::Vector2f{ myPol.verts[1].x, myPol.verts[1].y });
 		tri.setPoint(2, sf::Vector2f{ myPol.verts[2].x, myPol.verts[2].y });
 
-		npcCapule.setPosition(sf::Vector2f{ tinyCapsule.a.x, tinyCapsule.a.y });
-
 		// Move The NPC
-		sf::Vector2f move_to(npc.getPosition().x + direction.x, npc.getPosition().y + direction.y);
+		sf::Vector2f move_to(npc.getPosition().x + 5*direction.x, npc.getPosition().y + 5*direction.y);
 		if (move_to.x < 0) {
 			direction.x *= -1;
 			move_to.x = 0; 

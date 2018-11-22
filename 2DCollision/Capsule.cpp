@@ -66,3 +66,8 @@ sf::Vector2f Capsule::getPosition()
 {
 	return m_startCircle.getPosition();
 }
+
+float Capsule::getRadius()
+{
+	return m_radius;
+}
