@@ -67,6 +67,18 @@ sf::Vector2f Capsule::getPosition()
 	return m_startCircle.getPosition();
 }
 
+sf::Vector2f Capsule::getPositionEnd()
+{
+	return m_endCircle.getPosition();
+}
+
+void Capsule::setColor(sf::Color t)
+{
+	m_startCircle.setFillColor(t);
+	m_endCircle.setFillColor(t);
+	m_capsuleBridge.setFillColor(t);
+}
+
 float Capsule::getRadius()
 {
 	return m_radius;

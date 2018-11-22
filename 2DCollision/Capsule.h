@@ -13,6 +13,8 @@ public:
 	void setPosition(sf::Vector2f t_pos);
 	void adjustBridge();
 	sf::Vector2f getPosition();
+	sf::Vector2f getPositionEnd();
+	void setColor(sf::Color t);
 	float getRadius();
 private:
 	sf::CircleShape m_startCircle;
