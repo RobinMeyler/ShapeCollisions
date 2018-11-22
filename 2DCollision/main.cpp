@@ -78,7 +78,8 @@ int main()
 	myPol.verts[0] = c2V(200, 150);
 	myPol.verts[1] = c2V(350, 180);
 	myPol.verts[2] = c2V(350, 250);
-
+	c2Norms(myPol.verts, myPol.norms, myPol.count);
+	
 	sf::ConvexShape tri;
 	tri.setFillColor(sf::Color::Blue);
 	tri.setOrigin(40, 40);
@@ -86,7 +87,6 @@ int main()
 	tri.setPosition(0, 0);
 	tri.setOrigin(0, 0);
 	
-
 	c2Ray npcRay;
 	npcRay.p = c2V(400, 500);
 	npcRay.d = c2V(400, 500);
@@ -310,17 +310,56 @@ int main()
 			
 			startOfRay = sf::Vertex{ sf::Vector2f{npcRay.p.x, npcRay.p.y}, sf::Color::Green };
 			c2Raycast cast;
+
 			result = c2RaytoAABB(npcRay, aabb_npc, &cast);
 			cout << ((result != 0) ? ("Ray to AABB - Collision") : "") << endl;
 			if (result) {
 				startOfRay.color =  sf::Color::Red ;
 				endofRay.color = sf::Color::Red;
+				collided = true;
 			}
 			else if (collided == false) {
 				startOfRay.color = sf::Color::Green;
 				endofRay.color = sf::Color::Green;
 			}
-			
+
+
+			result = c2RaytoCircle(npcRay, testCircle, &cast);
+			cout << ((result != 0) ? ("Ray to Circle - Collision") : "") << endl;
+			if (result) {
+				startOfRay.color = sf::Color::Red;
+				endofRay.color = sf::Color::Red;
+				collided = true;
+			}
+			else if (collided == false) {
+				startOfRay.color = sf::Color::Green;
+				endofRay.color = sf::Color::Green;
+			}
+
+
+			result = c2RaytoCapsule(npcRay, tinyCapsule, &cast);
+			cout << ((result != 0) ? ("Ray to Capsule - Collision") : "") << endl;
+			if (result) {
+				startOfRay.color = sf::Color::Red;
+				endofRay.color = sf::Color::Red;
+				collided = true;
+			}
+			else if (collided == false) {
+				startOfRay.color = sf::Color::Green;
+				endofRay.color = sf::Color::Green;
+			}
+
+			result = c2RaytoPoly(npcRay, &myPol, NULL, &cast);
+			cout << ((result != 0) ? ("Ray to Polygon - Collision") : "") << endl;
+			if (result) {
+				startOfRay.color = sf::Color::Red;
+				endofRay.color = sf::Color::Red;
+				collided = true;
+			}
+			else if (collided == false) {
+				startOfRay.color = sf::Color::Green;
+				endofRay.color = sf::Color::Green;
+			}
 
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
 			{
@@ -333,6 +372,7 @@ int main()
 				myPlayerShape = AABB;
 				firstEntry = true;
 			}
+			collided = false;
 		}
 
 		// Circle
